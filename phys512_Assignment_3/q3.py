@@ -1,9 +1,8 @@
 import numpy as np
 import camb
 from matplotlib import pyplot as plt
-import time
 
-def get_spectrum(pars,y,lmax=2000):
+def get_spectrum(pars,y,tau=0.05,lmax=2000):
     #print('pars are ',pars)
     H0=pars[0]
     ombh2=pars[1]
@@ -11,7 +10,7 @@ def get_spectrum(pars,y,lmax=2000):
     As=pars[3]
     ns=pars[4]
     pars=camb.CAMBparams()
-    pars.set_cosmology(H0=H0,ombh2=ombh2,omch2=omch2,mnu=0.06,omk=0,tau=0.05)
+    pars.set_cosmology(H0=H0,ombh2=ombh2,omch2=omch2,mnu=0.06,omk=0,tau=tau)
     pars.InitPower.set_params(As=As,ns=ns,r=0)
     pars.set_for_lmax(lmax,lens_potential_accuracy=0)
     results=camb.get_results(pars)
@@ -69,7 +68,7 @@ y=wmap[:,1]
 noise=np.array(wmap[:,2])
 Ninv=np.eye(len(y))/noise**2
 
-#part 1
+#part 1 fix tau
 #run Newton's with numerical derivatives
 par_step=pars*1e-2
 for i in range(10):
@@ -83,61 +82,34 @@ for i in range(10):
     pars=pars+step
     print(pars)
 
-print('The initial guess we get from Newton"s method are H0=',pars[0],'ombh2=',pars[1],'omch2=',pars[2],'As=',pars[3],'ns=',pars[4])
+print('The optimal parameters with fixed tau are',pars )
 #since we have a curvature estimate from Newton's method, we can
 #guess our chain sampling using that
 par_sigs=np.sqrt(np.diag(lhs_inv))
-print('Their errors are', par_sigs)
-assert(1==0)
+print('Their errors with fixed tau are', par_sigs)
 
-#part 2
-pars=np.asarray([69.3,0.024,0.113,2.04e-9,0.969])
-par_step=pars*1e-2
-for i in range(10):
-    model=get_spectrum(pars,y)
-    derivs=num_deriv(get_spectrum,y,pars,par_step)
-    resid=y-model
-    lhs=derivs.T@Ninv@derivs
-    rhs=derivs.T@Ninv@resid
-    lhs_inv=np.linalg.inv(lhs)
-    step=lhs_inv@rhs
-    pars=pars+step
-    print(pars)
+#part 2 float tau
+tau=0.05
+tau_step=tau/100
 
-print('The initial guess we get from Newton"s method are H0=',pars[0],'ombh2=',pars[1],'omch2=',pars[2],'As=',pars[3],'ns=',pars[4])
-#since we have a curvature estimate from Newton's method, we can
-#guess our chain sampling using that
+f_right=get_spectrum(pars,y,tau+tau_step)
+f_left=get_spectrum(pars,y,tau-tau_step)
+derivs_tau=(f_right-f_left)/(2*tau_step)
+derivs=np.insert(derivs,3,derivs_tau,1)
+lhs=derivs.T@Ninv@derivs
+rhs=derivs.T@Ninv@resid
+lhs_inv=np.linalg.inv(lhs)
 par_sigs=np.sqrt(np.diag(lhs_inv))
-print('Their errors are', par_sigs)
+print('Their errors when floating tau are', par_sigs)
 
-def run_chain_corr(pars,chifun,data,corr_mat,nsamp=5000,T=1.0):
-    npar=len(pars)
-    chain=np.zeros([nsamp,npar])
-    chivec=np.zeros(nsamp)
-    chisq=chifun(pars,data)
-    L=np.linalg.cholesky(corr_mat)
-    for i in range(nsamp):
-        pars_trial=pars+L@np.random.randn(npar)
-        chi_new=chifun(pars_trial,data)
-        delta_chi=chi_new-chisq
-        if np.random.rand(1)<np.exp(-0.5*delta_chi/T):
-            chisq=chi_new
-            pars=pars_trial
-        chain[i,:]=pars
-        chivec[i]=chisq
-    return chain,chivec
-
-chain,chivec=run_mcmc(pars,wmap,par_sigs,our_chisq,nstep=10000)
-par_sigs=np.std(chain,axis=0)
-par_means=np.mean(chain,axis=0)
-
-chisq=our_chisq(wmap,pars)
-print('chi square is ',chisq)  
+chi=our_chisq(wmap,pars)
+print('The final chi square is',chi)
 
 plt.ion()
 plt.clf();
-#plt.errorbar(wmap[:,0],wmap[:,1],wmap[:,2],fmt='*')
 plt.plot(wmap[:,0],wmap[:,1],'.')
 cmb=get_spectrum(pars,y)
 plt.plot(cmb)
+plt.savefig('Newton method.png')
+plt.show()
 
