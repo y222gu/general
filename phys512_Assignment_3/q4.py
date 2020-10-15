@@ -66,6 +66,8 @@ def run_mcmc(pars,data,par_step,our_chisq,nstep=5000):
             chi_cur=chi_trial
         chain[i,:]=pars
         chivec[i]=chi_cur
+        np.savetxt('chain.txt', chain)
+        np.savetxt('chi.txt', chivec)
         print('mcmc',i,'step')
     return chain,chivec
 
@@ -91,7 +93,7 @@ covmat= np.linalg.inv(grad.T* np.diag(1.0/wmap[:,2]**2)*grad)
 par_step=cov_step(covmat)
 #par_step=par_step*scale
 #par_step=np.asarray(par_step.T)
-chain,chivec=run_mcmc(pars,wmap,par_step,our_chisq,nstep=10)
+chain,chivec=run_mcmc(pars,wmap,par_step,our_chisq,nstep=10000)
 par_sigs=np.std(chain,axis=0)
 par_means=np.mean(chain,axis=0)
 chisq=our_chisq(wmap,par_means)
