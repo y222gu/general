@@ -82,11 +82,11 @@ for i in range(10):
     pars=pars+step
     print(pars)
 
-print('The initial guess we get from Newton"s method are H0=',pars[0],'ombh2=',pars[1],'omch2=',pars[2],'As=',pars[3],'ns=',pars[4])
+print('The optimal parameters with fixed tau are',pars )
 #since we have a curvature estimate from Newton's method, we can
 #guess our chain sampling using that
 par_sigs=np.sqrt(np.diag(lhs_inv))
-print('Their errors are', par_sigs)
+print('Their errors with fixed tau are', par_sigs)
 
 #part 2 float tau
 tau=0.05
@@ -100,8 +100,7 @@ lhs=derivs.T@Ninv@derivs
 rhs=derivs.T@Ninv@resid
 lhs_inv=np.linalg.inv(lhs)
 par_sigs=np.sqrt(np.diag(lhs_inv))
-print('The parameters optimized with Newton method are',pars)
-print('Their errors are', par_sigs)
+print('Their errors when floating tau are', par_sigs)
 
 chi=our_chisq(wmap,pars)
 print('The final chi square is',chi)
