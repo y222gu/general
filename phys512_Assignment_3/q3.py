@@ -1,7 +1,6 @@
 import numpy as np
 import camb
 from matplotlib import pyplot as plt
-import time
 
 def get_spectrum(pars,y,tau=0.05,lmax=2000):
     #print('pars are ',pars)
