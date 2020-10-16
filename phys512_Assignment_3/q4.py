@@ -89,10 +89,8 @@ par_step=pars/100
 grad = np.matrix(num_deriv(get_spectrum,y,pars,par_step))
 covmat= np.linalg.inv(grad.T* np.diag(1.0/wmap[:,2]**2)*grad)
 
-#scale=0.4
 par_step=cov_step(covmat)
-#par_step=par_step*scale
-#par_step=np.asarray(par_step.T)
+
 chain,chivec=run_mcmc(pars,wmap,par_step,our_chisq,nstep=10000)
 par_sigs=np.std(chain,axis=0)
 par_means=np.mean(chain,axis=0)
@@ -107,3 +105,4 @@ plt.clf();
 plt.plot(wmap[:,0],wmap[:,1],'.')
 cmb=get_spectrum(par_means,y)
 plt.plot(cmb)
+plt.savefig('correlated MCMC.png')

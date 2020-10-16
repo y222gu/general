@@ -18,7 +18,7 @@ def get_spectrum(pars,lmax=2000):
     results=camb.get_results(pars)
     powers=results.get_cmb_power_spectra(pars,CMB_unit='muK')
     cmb=powers['total']
-    tt=cmb[2:,0]    #you could return the full power spectrum here if you wanted to do say EE
+    tt=cmb[2:,0]    #remove first two entries
     return tt
 
 def our_chisq(data,pars):
