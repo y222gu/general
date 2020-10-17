@@ -1,7 +1,8 @@
 import numpy as np
 import camb
 from matplotlib import pyplot as plt
-import time
+import corner
+from statsmodels.graphics import tsaplots
 
 def get_spectrum(pars,y,lmax=2000):
     #print('pars are ',pars)
@@ -18,7 +19,7 @@ def get_spectrum(pars,y,lmax=2000):
     results=camb.get_results(pars)
     powers=results.get_cmb_power_spectra(pars,CMB_unit='muK')
     cmb=powers['total']
-    tt=cmb[2:len(y)+2,0]    #you could return the full power spectrum here if you wanted to do say EE
+    tt=cmb[2:len(y)+2,0]    #remove first two entries
     return tt
 
 def our_chisq(data,pars):
@@ -106,3 +107,16 @@ plt.plot(wmap[:,0],wmap[:,1],'.')
 cmb=get_spectrum(par_means,y)
 plt.plot(cmb)
 plt.savefig('correlated MCMC.png')
+
+#corner plot for convergence
+corner_plot = corner.corner(chain, labels=[r"$H0$", r"$ombh2$", r"$omch2$", r"$tau$",r"$As$",r"$ns$"],
+                        plot_contours=True, fill_contours=True,show_titles=True, title_kwargs={"fontsize": 12})
+
+# Display the autocorrelation plot of steps
+name=['H0', 'ombh2', 'omch2', 'tau','As','ns']
+for i in range(6):
+    fig = tsaplots.plot_acf(chain[:,i], lags=9999)
+    plt.title('Autocorrelation for '+name[i])
+    plt.savefig('Autocorrelation for '+ name[i])
+    plt.show()
+    
