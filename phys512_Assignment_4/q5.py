@@ -23,8 +23,7 @@ yft2= mydft(k,y)
 
 delta = np.zeros(len(yft2))
 delta[15]=512 #N/2=512
-delta[1011]=512 #N/2=512
-
+delta[1009]=512 #N/2=512
 
 fig1, ax1  =plt.subplots()
 plt.plot(abs(yft1),'.',label = "numpy fft")
@@ -35,6 +34,7 @@ plt.savefig('specctral leakage.png')
 plt.show()
 print("Error between my written DFT and numpy FFT=",np.std(np.abs(yft2)-np.abs(yft1)))
 print("Error between my written DFT and delta function=",np.std(np.abs(yft2)-np.abs(delta)))
+
 # part d
 
 N=1024
