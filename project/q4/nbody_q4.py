@@ -107,8 +107,8 @@ def k3_mass(den,edges,position,n,soft):
     
     new_m = new_den[ind_x,ind_y,ind_z]
     m_min = np.min(new_m)
-    
-    return new_m, m_min
+    m = new_m/m_min
+    return m
    
 # =============================================================================
 # setting parameters        
@@ -147,8 +147,8 @@ kernelft=np.fft.rfftn(kernel)
 
 #derive masses from a realization of k^-3
 den,edges = density(position, n, m)
-new_m, m_min = k3_mass(den,edges,position,n,0.5) 
-m = new_m/m_min
+new_m = k3_mass(den,edges,position,n,0.5) 
+
 
 # Check if the potential for one particle in 3d is correct
 x_1=np.zeros(steps*oversamp)
@@ -173,7 +173,7 @@ for i in range(steps):
     plt.clf() 
     
     for j in range(oversamp):
-        position,v,pot,f = take_step(position,v,dt,n,kernelft,m,non_periodic=non_periodic)
+        position,v,pot,f = take_step(position,v,dt,n,kernelft,new_m,non_periodic=non_periodic)
         energy,PE,KE = get_energy(position,v,pot,m)
         energy_table[i*oversamp+j]=[energy,PE,KE]
         x_1[i*oversamp+j]=position[0,0]
